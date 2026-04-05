@@ -11,7 +11,7 @@ import AboutSection from "./components/AboutSection";
 import Footer from "./components/Footer";
 import { addressToPuzzleHash } from "./services/addressCodec";
 import { fetchAllAddresses } from "./services/coinset";
-import { fetchPricesForYear } from "./services/coingecko";
+import { loadPricesForYear } from "./services/coingecko";
 import { clearCacheForQuery } from "./services/cache";
 import { processRecords } from "./utils/mining";
 
@@ -38,20 +38,16 @@ export default function App() {
       abortRef.current = false;
 
       try {
-        // Step 1: Convert addresses to puzzle hashes
         const puzzleHashes = addresses.map((addr) => ({
           address: addr,
           puzzleHash: addressToPuzzleHash(addr),
         }));
 
         if (forceRefresh) {
-          clearCacheForQuery(
-            puzzleHashes.map((p) => p.puzzleHash),
-            taxYear,
-          );
+          clearCacheForQuery(puzzleHashes.map((p) => p.puzzleHash));
         }
 
-        // Step 2: Fetch coin records
+        // Fetch coin records from coinset.org
         const allResults = await fetchAllAddresses(puzzleHashes, {
           apiKey: apiKeys.coinset,
           forceRefresh,
@@ -61,16 +57,24 @@ export default function App() {
 
         if (abortRef.current) return;
 
-        // Step 3: Fetch prices
-        const prices: PriceMap = await fetchPricesForYear(taxYear, {
-          apiKey: apiKeys.coingecko,
-          forceRefresh,
-          onProgress: setProgress,
+        // Load bundled price data (local static JSON, no network call)
+        setProgress({
+          phase: "prices",
+          message: "Loading price data...",
+          current: 0,
+          total: 1,
+        });
+        const prices: PriceMap = await loadPricesForYear(taxYear);
+        setProgress({
+          phase: "prices",
+          message: `Loaded ${Object.keys(prices).length} daily prices`,
+          current: 1,
+          total: 1,
         });
 
         if (abortRef.current) return;
 
-        // Step 4: Process and classify transactions
+        // Classify transactions and calculate cost basis
         setProgress({
           phase: "analyzing",
           message: "Classifying transactions and calculating cost basis...",
@@ -86,7 +90,6 @@ export default function App() {
           allTransactions.push(...txs);
         }
 
-        // De-duplicate by ID and sort by date
         const seen = new Set<string>();
         const deduped = allTransactions.filter((tx) => {
           if (seen.has(tx.id)) return false;
@@ -122,7 +125,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="mx-auto max-w-5xl px-4 py-6">
           <div className="flex items-center gap-3">
@@ -136,10 +138,8 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-8 space-y-6">
-        {/* About */}
         <AboutSection />
 
-        {/* Error banner */}
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 flex items-center justify-between">
             <span>{error}</span>
@@ -154,7 +154,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Configuration */}
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <AddressInput onChange={setAddresses} />
@@ -165,7 +164,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => void handleCalculate(false)}
@@ -188,10 +186,8 @@ export default function App() {
           )}
         </div>
 
-        {/* Progress */}
         <ProgressPanel progress={progress} isLoading={isLoading} />
 
-        {/* Results */}
         {transactions.length > 0 && (
           <>
             <Summary transactions={transactions} taxYear={taxYear} />

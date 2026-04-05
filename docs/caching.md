@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Documents the localStorage-based caching layer that persists user state and API responses across page reloads.
+Documents the localStorage-based caching layer that persists user state and API responses across page reloads. Price data is loaded from the bundled static JSON on every run (fast local fetch, no caching needed).
 
 ## Key Concepts
 
@@ -26,7 +26,6 @@ Documents the localStorage-based caching layer that persists user state and API 
 | `chiatax:apiKeys` | `ApiKeys` | N/A (user pref) | N/A |
 | `chiatax:miningOverrides` | `Record<string, boolean>` | N/A (user pref) | N/A |
 | `chiatax:coins:<puzzleHash>` | `CachedData<RawCoinRecord[]>` | 1 hour | Never stale |
-| `chiatax:prices:<year>` | `CachedData<Record<string, number>>` | 24 hours | Never stale |
 
 ### CachedData Wrapper
 
@@ -41,14 +40,12 @@ interface CachedData<T> {
 
 - **Coin records (current year):** 1 hour — new blocks may add transactions
 - **Coin records (past years):** Never stale — blockchain is immutable
-- **Prices (current year):** 24 hours — prices settle daily
-- **Prices (past years):** Never stale — historical prices don't change
 
 ## Eviction on QuotaExceededError
 
 localStorage typically has a 5-10 MB quota. When a write fails:
 
-1. Collect all `chiatax:coins:*` and `chiatax:prices:*` keys
+1. Collect all `chiatax:coins:*` keys
 2. Exclude entries for the current year
 3. Sort by `fetchedAt` ascending (oldest first)
 4. Delete the 3 oldest entries

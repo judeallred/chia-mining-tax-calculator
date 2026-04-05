@@ -2,7 +2,6 @@ import type { CachedData, ApiKeys } from "../types";
 
 const PREFIX = "chiatax:";
 const COINS_TTL_CURRENT_YEAR = 60 * 60 * 1000; // 1 hour
-const PRICES_TTL_CURRENT_YEAR = 24 * 60 * 60 * 1000; // 24 hours
 
 function key(suffix: string): string {
   return `${PREFIX}${suffix}`;
@@ -44,9 +43,7 @@ function evictOldest(): void {
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
     if (!k?.startsWith(PREFIX)) continue;
-    // Only evict data caches, not user preferences
-    if (!k.startsWith(key("coins:")) && !k.startsWith(key("prices:"))) continue;
-    // Don't evict current year data
+    if (!k.startsWith(key("coins:"))) continue;
     if (k.includes(`:${cYear}`)) continue;
     const raw = safeGet<CachedData<unknown>>(k);
     if (raw?.fetchedAt) {
@@ -54,14 +51,13 @@ function evictOldest(): void {
     }
   }
   candidates.sort((a, b) => a.fetchedAt - b.fetchedAt);
-  // Evict oldest 3 entries
   for (const c of candidates.slice(0, 3)) {
     localStorage.removeItem(c.key);
   }
 }
 
 function isFresh(fetchedAt: number, ttlMs: number, year: number): boolean {
-  if (year < currentYear()) return true; // past years never stale
+  if (year < currentYear()) return true;
   return Date.now() - fetchedAt < ttlMs;
 }
 
@@ -100,9 +96,7 @@ export function setMiningOverrides(overrides: Record<string, boolean>): void {
 }
 
 export function getCoinRecords(puzzleHash: string): CachedData<unknown[]> | null {
-  const cached = safeGet<CachedData<unknown[]>>(key(`coins:${puzzleHash}`));
-  if (!cached) return null;
-  return cached;
+  return safeGet<CachedData<unknown[]>>(key(`coins:${puzzleHash}`));
 }
 
 export function isCoinRecordsFresh(puzzleHash: string, year: number): boolean {
@@ -116,26 +110,8 @@ export function setCoinRecords(puzzleHash: string, data: unknown[]): void {
   safeSet(key(`coins:${puzzleHash}`), entry);
 }
 
-export function getPrices(year: number): CachedData<Record<string, number>> | null {
-  const cached = safeGet<CachedData<Record<string, number>>>(key(`prices:${year}`));
-  if (!cached) return null;
-  return cached;
-}
-
-export function isPricesFresh(year: number): boolean {
-  const cached = getPrices(year);
-  if (!cached) return false;
-  return isFresh(cached.fetchedAt, PRICES_TTL_CURRENT_YEAR, year);
-}
-
-export function setPrices(year: number, data: Record<string, number>): void {
-  const entry: CachedData<Record<string, number>> = { data, fetchedAt: Date.now() };
-  safeSet(key(`prices:${year}`), entry);
-}
-
-export function clearCacheForQuery(puzzleHashes: string[], year: number): void {
+export function clearCacheForQuery(puzzleHashes: string[]): void {
   for (const ph of puzzleHashes) {
     localStorage.removeItem(key(`coins:${ph}`));
   }
-  localStorage.removeItem(key(`prices:${year}`));
 }

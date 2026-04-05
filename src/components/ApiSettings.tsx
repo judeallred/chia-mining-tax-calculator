@@ -44,25 +44,9 @@ export default function ApiSettings({ onChange }: ApiSettingsProps) {
       {open && (
         <div className="border-t border-gray-200 px-4 py-4 space-y-4">
           <p className="text-xs text-gray-500">
-            Optional. Public APIs work without keys. Add keys for higher rate limits
-            or access to historical data beyond 365 days.
+            Price data is bundled with the app. Coinset.org is used for blockchain data
+            and does not currently require an API key.
           </p>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              CoinGecko API Key
-            </label>
-            <input
-              type="password"
-              value={keys.coingecko ?? ""}
-              onChange={(e) => update("coingecko", e.target.value)}
-              placeholder="CG-... or demo key"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-            <p className="mt-1 text-xs text-gray-400">
-              Free demo keys work. Pro keys (CG-...) unlock full historical data.
-            </p>
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

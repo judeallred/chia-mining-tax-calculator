@@ -14,15 +14,15 @@ export interface RawCoinRecord {
 export type TransactionType = "farming_reward" | "pool_payout" | "received";
 
 export interface Transaction {
-  id: string; // hex coin ID derived from parent_coin_info + puzzle_hash + amount
+  id: string;
   date: Date;
   timestamp: number;
   amountMojos: number;
   amountXch: number;
   type: TransactionType;
   isMiningIncome: boolean;
-  priceUsd: number | null; // XCH/USD price on that day
-  valueFmvUsd: number | null; // amountXch * priceUsd
+  priceUsd: number | null;
+  valueFmvUsd: number | null;
   walletAddress: string;
   puzzleHash: string;
   coinbase: boolean;
@@ -31,7 +31,7 @@ export interface Transaction {
 }
 
 export interface PriceMap {
-  [dateKey: string]: number; // "YYYY-MM-DD" -> USD price
+  [dateKey: string]: number;
 }
 
 export interface CachedData<T> {
@@ -40,7 +40,6 @@ export interface CachedData<T> {
 }
 
 export interface ApiKeys {
-  coingecko?: string;
   coinset?: string;
 }
 

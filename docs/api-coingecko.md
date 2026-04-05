@@ -1,73 +1,65 @@
-# CoinGecko API Integration
+# Price Data Integration
 
 ## Purpose
 
-Documents how the app fetches historical XCH/USD price data from CoinGecko for cost basis calculations.
+Documents how the app obtains historical XCH/USD price data for cost basis calculations.
 
 ## Key Concepts
 
-- **Primary endpoint:** `GET /coins/chia-network/market_chart/range?vs_currency=usd&from=UNIX&to=UNIX`
-- **Coin ID:** `chia-network`
-- **Free tier (demo):** ~30 requests/min, historical data limited to past 365 days
-- **Pro tier:** Higher limits, full historical access
-- **Bundled fallback:** `public/data/xch-usd-daily.json` provides offline/historical coverage
+- **No runtime API calls.** All price data is bundled as a static JSON file shipped with the app.
+- **Data source:** CryptoCompare `histoday` API, fetched once at build time by `scripts/update-prices.ts`
+- **Format:** `public/data/xch-usd-daily.json` — a flat `{ "YYYY-MM-DD": price }` map
+- **Coverage:** ~1,700+ daily closing prices from June 2021 (XCH exchange launch) to the date the script was last run
+- **Update process:** Re-run `npm run update-prices` and redeploy to refresh price data
 
 ## File Map
 
-- `src/services/coingecko.ts` — API client with key detection and fallback
-- `scripts/update-prices.ts` — Generates the bundled price JSON
-- `public/data/xch-usd-daily.json` — Bundled daily prices (YYYY-MM-DD → USD)
+- `scripts/update-prices.ts` — Fetches daily closing prices from CryptoCompare and writes the bundled JSON
+- `public/data/xch-usd-daily.json` — Static bundled price data (~39 KB)
+- `src/services/coingecko.ts` — Loads the bundled JSON at runtime and provides `lookupPrice()` for date-based lookups
 
 ## Data Shapes
-
-### API Response (market_chart/range)
-
-```json
-{
-  "prices": [[1680000000000, 32.45], [1680086400000, 33.12], ...]
-}
-```
-
-Each entry is `[timestamp_ms, price_usd]`. For ranges >90 days, data is daily at 00:00 UTC.
 
 ### Bundled Price JSON
 
 ```json
 {
-  "2023-01-01": 29.45,
-  "2023-01-02": 30.12,
+  "2021-07-01": 281.63,
+  "2021-07-02": 270.05,
   ...
+  "2026-04-05": 2.49
 }
 ```
 
-### Internal PriceMap
+### CryptoCompare API Response (used by build script only)
 
-```typescript
-type PriceMap = Record<string, number>; // "YYYY-MM-DD" → USD
+```
+GET https://min-api.cryptocompare.com/data/v2/histoday?fsym=XCH&tsym=USD&limit=2000
 ```
 
-## Key Detection
+Returns up to 2000 daily OHLCV entries. The script uses the `close` price.
 
-The service auto-detects the key type:
-- No key → public API (`https://api.coingecko.com/api/v3/`)
-- Key starting with `CG-` → Pro API (`https://pro-api.coingecko.com/api/v3/`, header: `x-cg-pro-api-key`)
-- Other keys → Demo API (same base URL, header: `x-cg-demo-api-key`)
+### lookupPrice()
 
-## Price Lookup Strategy
+```typescript
+function lookupPrice(prices: PriceMap, date: Date): number | null
+```
 
-1. Look up exact date in PriceMap
-2. If missing, search ±3 adjacent days
-3. Return `null` if no price found
+1. Looks up the exact date (`YYYY-MM-DD`) in the price map
+2. If missing, searches ±3 adjacent days for the nearest available price
+3. Returns `null` if no price found within range
 
 ## Edge Cases and Gotchas
 
-- Free tier 365-day limit means 2024 tax year data is unavailable via API in late 2025
-- The bundled JSON fills this gap but may be stale if not regenerated
-- Price data gaps can occur on dates with low trading volume
-- CoinGecko returns daily data at 00:00 UTC; transactions at other times use that day's price
+- XCH launched on exchanges around May 2021, but CryptoCompare data starts June 30, 2021. Early May transactions may lack prices.
+- The bundled data becomes stale as time passes — re-run the script periodically (could be automated in CI)
+- CryptoCompare uses daily closing prices (00:00 UTC); intraday price variations are not captured
+- Price data gaps are handled by the ±3 day lookback in `lookupPrice()`
+- The bundled JSON is ~39 KB and loaded once on first use (cached in memory)
 
 ## Extension Points
 
-- Add alternative price sources (e.g., CoinMarketCap, direct exchange APIs)
-- Add hourly price resolution using the `interval=hourly` param (paid tier)
-- Regenerate bundled prices in CI on a schedule
+- Automate price updates via a scheduled GitHub Action (`cron` trigger that runs `update-prices` and commits)
+- Add CoinGecko as a secondary data source for cross-validation
+- Add support for user-uploaded price CSV as override
+- Add hourly or intraday price resolution
