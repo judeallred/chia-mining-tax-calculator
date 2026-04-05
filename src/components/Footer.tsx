@@ -62,6 +62,14 @@ export default function Footer() {
             />
           </div>
         </div>
+
+        <p className="mt-6 text-[10px] leading-relaxed text-gray-400 max-w-xl mx-auto">
+          All calculations are provided on a best-effort basis. Price data, transaction
+          classification, and cost basis figures may be inaccurate or incomplete. You are solely
+          responsible for verifying all data before using it for tax filing or any other purpose.
+          This tool does not provide tax, legal, or accounting advice. The authors and contributors
+          accept no liability for errors, omissions, or any losses arising from the use of this tool.
+        </p>
       </div>
     </footer>
   );
