@@ -127,7 +127,7 @@ export default function App() {
           <div className="flex items-center gap-3">
             <span className="text-3xl" role="img" aria-label="seedling">🌱</span>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">ChiaMiningTaxCalculator</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Chia Mining Tax Calculator</h1>
               <p className="text-sm text-gray-500">Calculate cost basis for Chia farming income</p>
             </div>
           </div>

@@ -91,24 +91,14 @@ export default function TransactionTable({ transactions, onMiningToggle }: Trans
       columnHelper.accessor("id", {
         header: "Coin ID",
         cell: (info) => (
-          <span className="font-mono text-xs text-gray-400" title={info.getValue()}>
-            {truncateMiddle(info.getValue(), 16)}
-          </span>
-        ),
-      }),
-      columnHelper.display({
-        id: "tx",
-        header: "Tx",
-        enableSorting: false,
-        cell: (info) => (
           <a
-            href={`https://www.spacescan.io/coin/0x${info.row.original.id}`}
+            href={`https://www.spacescan.io/coin/0x${info.getValue()}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-emerald-600 hover:text-emerald-700 text-xs"
-            title={`View coin 0x${info.row.original.id}`}
+            className="font-mono text-xs text-emerald-600 hover:text-emerald-700"
+            title={info.getValue()}
           >
-            ↗
+            {truncateMiddle(info.getValue(), 16)}
           </a>
         ),
       }),

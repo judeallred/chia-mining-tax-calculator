@@ -1,4 +1,4 @@
-# 🌱 ChiaMiningTaxCalculator
+# 🌱 Chia Mining Tax Calculator
 
 Free, open-source, client-side Chia (XCH) farming/mining tax calculator. Calculate cost basis and generate IRS-ready CSV reports — all in your browser.
 
@@ -19,7 +19,7 @@ Free, open-source, client-side Chia (XCH) farming/mining tax calculator. Calcula
 
 ```bash
 git clone https://github.com/judeallred/chia-mining-tax-calculator.git
-cd ChiaMiningTaxCalculator
+cd chia-mining-tax-calculator
 npm install
 npm run dev
 ```

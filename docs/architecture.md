@@ -2,7 +2,7 @@
 
 ## Purpose
 
-High-level system overview of ChiaMiningTaxCalculator — a static, client-side React+TypeScript web application that calculates Chia (XCH) farming/mining income taxes.
+High-level system overview of Chia Mining Tax Calculator — a static, client-side React+TypeScript web application that calculates Chia (XCH) farming/mining income taxes.
 
 ## Key Concepts
 

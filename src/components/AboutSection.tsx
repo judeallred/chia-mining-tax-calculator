@@ -1,9 +1,29 @@
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 const REPO_URL = "https://github.com/judeallred/chia-mining-tax-calculator";
+const TIP_ADDRESS = "xch1dltucau5fpq60p88w9qp0smcxny2yu5ypfncwzvslqvy32cr5w8sw76pmr";
 
 export default function AboutSection() {
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(TIP_ADDRESS);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = TIP_ADDRESS;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
@@ -28,7 +48,7 @@ export default function AboutSection() {
       {open && (
         <div className="border-t border-gray-200 px-4 py-4 space-y-4 text-sm text-gray-600">
           <p>
-            <strong>ChiaMiningTaxCalculator</strong> is a free, open-source, client-side tool
+            <strong>Chia Mining Tax Calculator</strong> is a free, open-source, client-side tool
             for calculating Chia (XCH) farming/mining income taxes. All data processing happens
             in your browser — nothing is sent to any server beyond the CoinGecko and Coinset.org
             public APIs.
@@ -85,6 +105,30 @@ export default function AboutSection() {
                 {" — "}Blockchain explorer with built-in tax statement exports
               </li>
             </ul>
+          </div>
+
+          <div>
+            <p className="font-medium text-gray-700 mb-1">Was This Helpful?</p>
+            <p className="mb-3">
+              Did I help you out? There's <strong>no tracking</strong> on this site, so please let me know
+              by tossing a mojo in the tip jar.
+            </p>
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                <span className="font-mono text-xs text-gray-600 max-w-[280px] truncate sm:max-w-none">
+                  {TIP_ADDRESS}
+                </span>
+                <button
+                  onClick={handleCopy}
+                  className="shrink-0 rounded-md bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-200 transition-colors"
+                >
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <div className="rounded-lg border border-gray-200 bg-white p-2">
+                <QRCodeSVG value={TIP_ADDRESS} size={120} level="M" fgColor="#065f46" />
+              </div>
+            </div>
           </div>
         </div>
       )}

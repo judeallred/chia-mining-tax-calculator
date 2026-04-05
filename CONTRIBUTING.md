@@ -1,4 +1,4 @@
-# Contributing to ChiaMiningTaxCalculator
+# Contributing to Chia Mining Tax Calculator
 
 Thank you for your interest in contributing! This project is open source and we welcome pull requests, bug reports, and feature requests.
 
