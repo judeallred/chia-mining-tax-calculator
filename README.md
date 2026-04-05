@@ -7,7 +7,7 @@ Free, open-source, client-side Chia (XCH) farming/mining tax calculator. Calcula
 ## Features
 
 - **Multi-wallet support** — Input one or more XCH wallet addresses
-- **Automatic mining detection** — Identifies farming rewards (coinbase) and pool payouts
+- **Automatic mining detection** — Identifies solo farming rewards and pool payouts
 - **Cost basis calculation** — XCH/USD prices from bundled historical data at time of receipt
 - **Tax year filtering** — Select a specific tax year (2021–present)
 - **CSV export** — IRS Schedule 1/C format and Koinly Universal format

@@ -8,13 +8,13 @@ Documents how transactions are classified as mining/farming income versus regula
 
 Classification uses a three-tier system:
 
-### Tier 1: Coinbase Flag (Certain)
+### Tier 1: Block Reward Flag (Certain)
 
-The coinset.org API returns a `coinbase: boolean` on each coin record. When `true`, the coin was created as a block reward — this is definitively a solo farming reward.
+The coinset.org API returns a `coinbase: boolean` flag on each coin record (this is blockchain terminology, unrelated to the company "Coinbase"). When `true`, the coin was created as a block reward — this is definitively a solo farming reward.
 
 ### Tier 2: Pool Payout Heuristics (Estimated)
 
-Pool payouts appear as regular transactions (not coinbase). The engine uses these heuristics:
+Pool payouts appear as regular transactions (without the block reward flag). The engine uses these heuristics:
 - **Known reward amounts:** Matches against expected reward amounts per halving era
 - **Small amount heuristic:** Amounts < 0.5 XCH that aren't exact reward amounts are flagged as likely pool payouts
 
@@ -44,7 +44,7 @@ type TransactionType = "farming_reward" | "pool_payout" | "received";
 interface Transaction {
   type: TransactionType;
   isMiningIncome: boolean;  // final classification (after overrides)
-  coinbase: boolean;        // raw flag from API
+  coinbase: boolean;        // block reward flag from API (not the company)
   // ... other fields
 }
 ```

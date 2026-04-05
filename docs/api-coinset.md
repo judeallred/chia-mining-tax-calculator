@@ -8,7 +8,7 @@ Documents how the app fetches Chia blockchain transaction data from coinset.org.
 
 - **Endpoint:** `POST https://api.coinset.org/get_coin_records_by_puzzle_hash`
 - **Auth:** None required (public API).
-- **Data model:** Chia uses a UTXO-like "coin set" model. Each coin has a puzzle hash (≈ address), an amount in mojos, and metadata including a `coinbase` boolean.
+- **Data model:** Chia uses a UTXO-like "coin set" model. Each coin has a puzzle hash (≈ address), an amount in mojos, and metadata including a block reward flag (`coinbase` boolean — blockchain terminology, unrelated to the company).
 
 ## File Map
 
@@ -51,7 +51,7 @@ Documents how the app fetches Chia blockchain transaction data from coinset.org.
 
 ### Key Fields
 
-- `coinbase: true` — This coin was created as a block reward (farming/mining)
+- `coinbase: true` — This coin was created as a block reward (solo farming). This is standard blockchain terminology, unrelated to the company "Coinbase".
 - `amount` — In mojos (1 XCH = 1,000,000,000,000 mojos)
 - `timestamp` — Unix seconds when the coin was confirmed on-chain
 - `include_spent_coins: true` — Required to see historical transactions, not just current balance
@@ -61,7 +61,7 @@ Documents how the app fetches Chia blockchain transaction data from coinset.org.
 - Puzzle hash must include the `0x` prefix when sent to the API
 - The API returns ALL coins ever received at this puzzle hash (no built-in date filtering) — we filter by timestamp client-side
 - Very active wallets may return thousands of records in a single call
-- `coinbase: true` only appears on solo farming rewards; pool payouts are regular transactions
+- The block reward flag (`coinbase: true`) only appears on solo farming rewards; pool payouts are regular transactions
 
 ## Extension Points
 
