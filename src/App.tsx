@@ -83,7 +83,7 @@ export default function App() {
         for (const { records, address } of allResults) {
           const ph = puzzleHashes.find((p) => p.address === address);
           if (!ph) continue;
-          const txs = processRecords(records, address, ph.puzzleHash, prices, taxYear);
+          const txs = await processRecords(records, address, ph.puzzleHash, prices, taxYear);
           allTransactions.push(...txs);
         }
 

@@ -96,6 +96,22 @@ export default function TransactionTable({ transactions, onMiningToggle }: Trans
           </span>
         ),
       }),
+      columnHelper.display({
+        id: "tx",
+        header: "Tx",
+        enableSorting: false,
+        cell: (info) => (
+          <a
+            href={`https://www.spacescan.io/coin/0x${info.row.original.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-emerald-600 hover:text-emerald-700 text-xs"
+            title={`View coin 0x${info.row.original.id}`}
+          >
+            ↗
+          </a>
+        ),
+      }),
       columnHelper.accessor("isMiningIncome", {
         header: "Mining Income",
         cell: (info) => (

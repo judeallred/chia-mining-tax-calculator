@@ -20,7 +20,7 @@ function getYears(): number[] {
 export function getDefaultTaxYear(): number {
   const cached = getTaxYear();
   if (cached !== null && cached >= START_YEAR) return cached;
-  return new Date().getFullYear() - 1;
+  return 2025;
 }
 
 export default function TaxYearSelector({ value, onChange }: TaxYearSelectorProps) {

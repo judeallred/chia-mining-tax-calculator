@@ -20,12 +20,41 @@ const REWARD_AMOUNTS_MOJOS = [
   0.5 * MOJOS_PER_XCH,
 ];
 
-function coinId(record: RawCoinRecord): string {
-  // Simplified coin ID from the record fields
-  const parent = record.coin.parent_coin_info.replace("0x", "");
-  const ph = record.coin.puzzle_hash.replace("0x", "");
-  const amt = record.coin.amount.toString(16);
-  return `${parent.slice(0, 8)}${ph.slice(0, 8)}${amt}`;
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function intToBytes(n: number): Uint8Array {
+  if (n === 0) return new Uint8Array(0);
+  const hex = n.toString(16);
+  const padded = hex.length % 2 ? "0" + hex : hex;
+  const bytes = hexToBytes(padded);
+  if ((bytes[0] ?? 0) >= 0x80) {
+    const result = new Uint8Array(bytes.length + 1);
+    result.set(bytes, 1);
+    return result;
+  }
+  return bytes;
+}
+
+async function coinId(record: RawCoinRecord): Promise<string> {
+  const parent = hexToBytes(record.coin.parent_coin_info.replace("0x", ""));
+  const ph = hexToBytes(record.coin.puzzle_hash.replace("0x", ""));
+  const amt = intToBytes(record.coin.amount);
+  const combined = new Uint8Array(parent.length + ph.length + amt.length);
+  combined.set(parent, 0);
+  combined.set(ph, parent.length);
+  combined.set(amt, parent.length + ph.length);
+  const hash = await crypto.subtle.digest("SHA-256", combined);
+  return bytesToHex(new Uint8Array(hash));
 }
 
 function detectType(record: RawCoinRecord): TransactionType {
@@ -46,21 +75,24 @@ function shouldClassifyAsMining(type: TransactionType): boolean {
   return type === "farming_reward" || type === "pool_payout";
 }
 
-export function processRecords(
+export async function processRecords(
   records: RawCoinRecord[],
   walletAddress: string,
   puzzleHash: string,
   prices: PriceMap,
   taxYear: number,
-): Transaction[] {
+): Promise<Transaction[]> {
   const overrides = getMiningOverrides();
   const yearStart = new Date(`${taxYear}-01-01T00:00:00Z`).getTime() / 1000;
   const yearEnd = new Date(`${taxYear}-12-31T23:59:59Z`).getTime() / 1000;
 
-  return records
-    .filter((r) => r.timestamp >= yearStart && r.timestamp <= yearEnd)
-    .map((record): Transaction => {
-      const id = coinId(record);
+  const filtered = records.filter(
+    (r) => r.timestamp >= yearStart && r.timestamp <= yearEnd,
+  );
+
+  const transactions = await Promise.all(
+    filtered.map(async (record): Promise<Transaction> => {
+      const id = await coinId(record);
       const date = new Date(record.timestamp * 1000);
       const amountXch = record.coin.amount / MOJOS_PER_XCH;
       const type = detectType(record);
@@ -85,6 +117,8 @@ export function processRecords(
         parentCoinInfo: record.coin.parent_coin_info,
         confirmedBlockIndex: record.confirmed_block_index,
       };
-    })
-    .sort((a, b) => a.timestamp - b.timestamp);
+    }),
+  );
+
+  return transactions.sort((a, b) => a.timestamp - b.timestamp);
 }
